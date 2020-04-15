@@ -25,8 +25,7 @@ def get_version():
     else:
         raise Exception()
 
-print(get_version())
-"""
+
 setup(
     name="Hwget",
     author="Junpeng Fan",
@@ -36,4 +35,4 @@ setup(
     description='Download data with HuaWei cloud',
     url="https://github.com/FlyPythons/hwget",
 )
-"""
+
