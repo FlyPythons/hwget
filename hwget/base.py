@@ -10,7 +10,7 @@ from datetime import datetime
 from collections import OrderedDict
 
 from openstack import connection
-from hwget.obs import *
+from obs import *
 
 LOG = logging.getLogger(__name__)
 
