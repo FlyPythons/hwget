@@ -1,0 +1,2 @@
+esdk-obs-python
+huaweicloud-sdk-python

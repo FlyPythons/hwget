@@ -10,7 +10,7 @@ from datetime import datetime
 from collections import OrderedDict
 
 from openstack import connection
-from obs import *
+from hwget.obs import *
 
 LOG = logging.getLogger(__name__)
 
@@ -323,7 +323,25 @@ class OBS(object):
             LOG.error(response.errorMessage)
             return None
 
-    def upload(self, bucket, file, target, part_size=20*1024*1024):
+    def put(self, bucket, target, content):
+
+        """
+
+        :param bucket:
+        :param content:
+        :param target:
+        :return:
+        """
+
+        resp = self.connect.putContent(bucket, target, content=content)
+
+        if resp.status >= 300:
+            LOG.error('upload failed')
+            return 1
+
+        return 0
+
+    def upload(self, bucket, target, file, part_size=20*1024*1024):
         """
 
         :param bucket:
@@ -366,6 +384,18 @@ class OBS(object):
             return target
         else:
             return None
+
+    def download(self, bucket, target, file):
+
+        resp = self.connect.getObject(bucket, target, downloadPath=file)
+        if resp.status < 300:
+            LOG.info("Download %r success." % target)
+        else:
+            e = "Download %r error. %s" % (target, resp.errorMessage)
+            LOG.error(e)
+            raise Exception(e)
+
+        return file
 
 
 class Downloader(object):
@@ -491,26 +521,30 @@ class Hwget(object):
         date = datetime.utcnow().strftime('%Y%m%d')
         folder = date + "/" + uid
         self.obs.mkdir(bucket, date+"/")
+        self.obs.mkdir(bucket, folder + "/")
 
         files_exists = self._check_files_exists_in_obs(bucket, folder, outs)
         if len(files_exists) == len(outs):
             LOG.info("Download already.")
             return 0
 
+        task_dict = {
+            uid: {
+                "urls": urls,
+                "outs": outs
+            }
+        }
+
+        task_file = "%s/%s/%s.cfg" % (date, uid, uid)
+        self.obs.put(bucket, task_file, json.dumps(task_dict))
+
         cfg = {
             "ak": self.ak,
             "sk": self.sk,
             "region": self.region,
             "bucket": self.bucket,
-            "task": {
-                uid: {
-                    "date": date,
-                    "urls": urls,
-                    "outs": outs
-                }
-            },
-
-        }
+            "tasks": [task_file]
+            }
 
         zone = None
         flavor = None
@@ -558,6 +592,8 @@ class Hwget(object):
                     LOG.info("File %r failed." % failed)
                 else:
                     LOG.info("All files downloaded.")
+
+                LOG.info("You can check your files in bucket %s %r" % (bucket, folder))
                 break
 
             time.sleep(60)

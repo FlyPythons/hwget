@@ -8,7 +8,6 @@ import logging
 import argparse
 
 from hwget.base import OBS, Downloader
-from hwget import __author__, __email__, __version__
 
 
 LOG = logging.getLogger(__name__)
@@ -40,15 +39,11 @@ def do_download(cfg):
         "ak": "replace_with_your_ak",
         "sk": "replace_with_your_sk",
         "region": "replace_with_region",
-        "task": {
-            "replace_with_uid": {
-                "date": "your_date",
-                "urls": [],
-                "outs": []
-                }
-        }
+        "bucket": "replace_with_your_bucket",
+        "tasks": [task_file]
+
     }
-    :param config: config file
+    :param cfg: config file
 
     :return:
     """
@@ -58,14 +53,13 @@ def do_download(cfg):
     obs = OBS(
         ak=cfg["ak"], sk=cfg["sk"], region=cfg["region"]
     )
-    task_dict = cfg["task"]
+    tasks = cfg["tasks"]
 
-    for uid, v in task_dict.items():
-        os.mkdir(uid)
-        date = v["date"]
-        obs.mkdir(bucket, "%s/%s/" % (date, uid))
-        log_path = os.path.join(uid, "%s.log" % uid)
-        md5_path = os.path.join(uid, "%s.md5" % uid)
+    for task in tasks:
+        _date, _uid = task.split("/")[:2]
+        os.mkdir(_uid)
+        log_path = os.path.join(_uid, "%s.log" % _uid)
+        md5_path = os.path.join(_uid, "%s.md5" % _uid)
         md5_content = ""
 
         logging.basicConfig(
@@ -74,21 +68,23 @@ def do_download(cfg):
             format='%(asctime)s [%(levelname)s] %(message)s',
             datefmt='%d %b %Y %H:%M:%S'
         )
-
+        task_file = os.path.join(_uid, "%s.cfg" % _uid)
+        obs.download(bucket, task, task_file)
+        v = read_cfg(task_file)[_uid]
         for url, out in zip(v["urls"], v["outs"]):
-            file_path = os.path.join(uid, out)
-            target = "%s/%s/%s" % (date, uid, out)
+            file_path = os.path.join(_uid, out)
+            target = "%s/%s/%s" % (_date, _uid, out)
             response = downloader.download(url, file_path)
             if not response:
-                obs.upload(bucket, file_path, target)
+                obs.upload(bucket, target, file_path)
                 md5_content += "%s\t%s\n" % (create_md5(file_path), out)
 
         LOG.info("create md5")
         with open(md5_path, "w") as fh:
             fh.write(md5_content)
-        obs.upload(bucket, md5_path, "%s/%s/%s.md5" % (date, uid, uid))
+        obs.upload(bucket, "%s/%s/%s.md5" % (_date, _uid, _uid), md5_path)
         logging.shutdown()
-        obs.upload(bucket, log_path, "%s/%s/%s.log" % (date, uid, uid))
+        obs.upload(bucket, "%s/%s/%s.log" % (_date, _uid, _uid), log_path)
 
 
 def add_args(parser):
@@ -103,10 +99,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""
     description:
-
-    version: %s
-    contact:  %s <%s>\
-        """ % (__version__, " ".join(__author__), __email__))
+    Server module
+""")
 
     parser = add_args(parser)
     args = parser.parse_args()
