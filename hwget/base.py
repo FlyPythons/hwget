@@ -444,7 +444,7 @@ class Downloader(object):
 
 class Hwget(object):
 
-    def __init__(self, ak, sk, region, project_id, bucket, image):
+    def __init__(self, ak, sk, region, project_id, bucket, image="dbe9b51f-b64e-4373-a9d5-446885156ebf"):
 
         self.ak = ak
         self.sk = sk
@@ -568,7 +568,7 @@ class Hwget(object):
                 "path": "/etc/download.cfg",
                 "content": json.dumps(cfg)
             },
-            user_data="#! /bin/bash\npython -m hwget.server /etc/download.cfg\nshutdown -h now"
+            user_data="#! /bin/bash\npip install https://github.com/FlyPythons/hwget/archive/master.zip\npython -m hwget.server /etc/download.cfg\nshutdown -h now"
         )
 
         # wait for server shutdown
