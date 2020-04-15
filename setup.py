@@ -1,11 +1,6 @@
 # -*- coding:utf-8 -*-
 import os
-import sys
 from setuptools import setup, find_packages
-
-PY_VERSION = 2
-if sys.version[0] == "3":
-    PY_VERSION = 3
 
 
 def get_version():
