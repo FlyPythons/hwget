@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 import os
 import time
 import json
@@ -109,12 +111,13 @@ class Cloud(object):
         LOG.info("Not found")
         return None
 
-    def create_service(self, name: str, flavor: str, root_gb: int, personality: dict, user_data: str):
+    def create_service(self, name, flavor, root_gb, image, personality, user_data):
         """
         创建ECS服务器
         :param name: 名称
         :param flavor: 实例类型
         :param root_gb: 系统盘大小 GB
+        :param image: 镜像ID
         :param personality: personality属性 {"path": "", "content": ""}
         :param user_data: user_data
         :return: server id
@@ -129,7 +132,6 @@ class Cloud(object):
             LOG.error(e)
             raise Exception(e)
 
-        image = "9ca3c859-780f-4237-81c1-55216c72be64"  # downloadserver image
         vpc = self.vpc["vpc-default"]
         subnet = self.subnet["subnet-default"]
 
@@ -412,13 +414,14 @@ class Downloader(object):
 
 class Hwget(object):
 
-    def __init__(self, ak, sk, region, project_id, bucket):
+    def __init__(self, ak, sk, region, project_id, bucket, image):
 
         self.ak = ak
         self.sk = sk
         self.region = region
         self.project_id = project_id
         self.bucket = bucket
+        self.image = image
 
         self.cloud = Cloud(
             ak=ak, sk=sk, region=region, project_id=project_id
@@ -446,13 +449,13 @@ class Hwget(object):
         return (n + 1) * 10
 
     @staticmethod
-    def _generate_id(urls: list):
+    def _generate_id(urls):
         text = "|".join(sorted(urls))
 
         import hashlib
         return hashlib.md5(text.encode("utf-8")).hexdigest()
 
-    def _check_files_exists_in_obs(self, bucket: str, folder: str, files: list):
+    def _check_files_exists_in_obs(self, bucket, folder, files):
         if folder[-1] != "/":
             folder += "/"
 
@@ -482,9 +485,17 @@ class Hwget(object):
             else:
                 size_all += size
 
+        LOG.info("Download size: {:,}".format(size_all))
         disk_gb = self._get_disk_size_gb(size_all)
         uid = self._generate_id(urls)
         date = datetime.utcnow().strftime('%Y%m%d')
+        folder = date + "/" + uid
+        self.obs.mkdir(bucket, date+"/")
+
+        files_exists = self._check_files_exists_in_obs(bucket, folder, outs)
+        if len(files_exists) == len(outs):
+            LOG.info("Download already.")
+            return 0
 
         cfg = {
             "ak": self.ak,
@@ -518,6 +529,7 @@ class Hwget(object):
             name="download_%s" % uid,
             flavor=flavor,
             root_gb=disk_gb,
+            image=self.image,
             personality={
                 "path": "/etc/download.cfg",
                 "content": json.dumps(cfg)
@@ -531,8 +543,6 @@ class Hwget(object):
         while True:
             res = self.cloud.show_server(server)
             LOG.info("server %s is %s" % (server, res.status))
-
-            folder = date+"/"+uid
             files_exists = self._check_files_exists_in_obs(bucket, folder, outs)
             new_success = set(files_exists) - set(curr_success)
             if new_success:

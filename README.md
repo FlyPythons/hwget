@@ -15,13 +15,15 @@ sk = "your_sk"
 region = "ap-southeast-1"  # Hong Kong
 project_id = "my_project_id"
 bucket = "bucket_you_want_to_save_to"
+image = "1ab5c293-81e8-46c9-9bc8-f6d6fa464cd0"
 
 cloud = Hwget(
     ak=ak,
     sk=sk, 
     region=region, 
     project_id=project_id,
-    bucket=bucket
+    bucket=bucket,
+    image=image
 )
 
 cloud.get([

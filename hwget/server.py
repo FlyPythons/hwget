@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding:utf-8 -*-
 
 import os
 import json
@@ -33,7 +34,7 @@ def read_cfg(cfg):
     return r
 
 
-def do_download(config):
+def do_download(cfg):
     """
     {
         "ak": "replace_with_your_ak",
@@ -51,7 +52,7 @@ def do_download(config):
 
     :return:
     """
-    cfg = read_cfg(config)
+
     bucket = cfg["bucket"]
     downloader = Downloader()
     obs = OBS(
@@ -80,7 +81,7 @@ def do_download(config):
             response = downloader.download(url, file_path)
             if not response:
                 obs.upload(bucket, file_path, target)
-                md5_content += "%s\n%s\n" % (out, create_md5(file_path))
+                md5_content += "%s\t%s\n" % (create_md5(file_path), out)
 
         LOG.info("create md5")
         with open(md5_path, "w") as fh:
@@ -109,10 +110,7 @@ def main():
 
     parser = add_args(parser)
     args = parser.parse_args()
-
-    with open(args.cfg) as fh:
-        cfg = json.loads(fh.read(), encoding="utf-8")
-
+    cfg = read_cfg(args.cfg)
     do_download(cfg)
 
 
