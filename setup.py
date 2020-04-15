@@ -18,12 +18,23 @@ def get_version():
         return meta["__version__"]
 
 
+def get_requirements():
+    r = []
+    for line in open("requirements.txt"):
+        line = line.strip()
+        if line:
+            r.append(line)
+
+    return r
+
+
 setup(
     name="Hwget",
     author="Junpeng Fan",
     author_email="jpfan@whu.edu.cn",
     version=get_version(),
     packages=find_packages(),
+    install_requires=get_requirements(),
     description='Download data with HuaWei cloud',
     url="https://github.com/FlyPythons/hwget",
 )
