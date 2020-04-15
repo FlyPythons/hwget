@@ -12,7 +12,16 @@ It's cheap to download data to HuaWei cloud, but is expensive to get data from H
 
 ## Usage
 ```python
+import sys
+import logging
 from hwget import Hwget
+
+logging.basicConfig(
+    level=logging.INFO, 
+    stream=sys.stderr,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%d %b %Y %H:%M:%S'
+)
 
 ak = "your_ak"
 sk = "your_sk"
