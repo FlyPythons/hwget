@@ -1,6 +1,10 @@
 # hwget
-Hwget is used to download data with Huawei Cloud.
+Hwget is used to download data to HuaWei cloud OBS.
 
+## Why to develop
+Too slow to download bio-data from sites abroad.
+## WARNING!!!
+It's cheap to download data to HuaWei cloud, but is expensive to get data from HuaWei cloud.
 ## Requirement 
 * python 2.7+ or python3.5+
 * [huaweicloud-sdk-python](https://github.com/huaweicloud/huaweicloud-sdk-python)
