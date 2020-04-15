@@ -7,9 +7,13 @@ Too slow to download bio-data from sites abroad.
 It's cheap to download data to HuaWei cloud, but is expensive to get data from HuaWei cloud.
 ## Requirement 
 * python 2.7+ or python3.5+
+* requests
 * [huaweicloud-sdk-python](https://github.com/huaweicloud/huaweicloud-sdk-python)
 * [huaweicloud-sdk-python-obs](https://github.com/huaweicloud/huaweicloud-sdk-python-obs)
-
+## Install
+```shell script
+pip install git+https://github.com/FlyPythons/hwget.git
+```
 ## Usage
 ```python
 import sys

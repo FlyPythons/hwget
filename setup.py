@@ -12,18 +12,10 @@ def get_version():
     """Get version and version_info from markdown/__meta__.py file."""
     module_path = os.path.join(os.path.dirname('__file__'), 'hwget', 'version.py')
 
-    if PY_VERSION == 2:
-        import importlib
-        meta = importlib.import_module('hwget.version')
-        return meta.__version__
-    elif PY_VERSION == 3:
-        import importlib.util
-        spec = importlib.util.spec_from_file_location('version', module_path)
-        meta = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(meta)
-        return meta.__version__
-    else:
-        raise Exception()
+    meta = {}
+    with open(module_path) as fh:
+        exec(fh.read(), meta)
+        return meta["__version__"]
 
 
 setup(

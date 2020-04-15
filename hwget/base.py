@@ -506,6 +506,7 @@ class Hwget(object):
             outs = [u.split("/")[-1] for u in urls]
 
         size_all = 0
+        LOG.info("Get %s URLs." % len(urls))
         for url in urls:
             size = self._get_content_size(url)
             if size == 0:
@@ -513,6 +514,7 @@ class Hwget(object):
                 LOG.error(e)
                 raise Exception(e)
             else:
+                LOG.info("URL {:} length {:,}".format(url, size))
                 size_all += size
 
         LOG.info("Download size: {:,}".format(size_all))
